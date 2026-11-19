@@ -9,13 +9,15 @@ leaves a break rather than a replacement.
 
 ## Records
 
-| File | Epoch | Source commit | Aggregate |
-|---|---|---|---|
-| `anchors/epoch-0.json` | 0 | `f06571b0f2ac` | `96219e9491556295df407a42a1ea9ad219d6bb18aa8a283e4ebf39527d107419` |
+| File | Epoch | Source commit | Aggregate | Anchor hash |
+|---|---|---|---|---|
+| `anchors/epoch-0.json` | 0 | `f06571b0f2ac` | `96219e9491556295df407a42a1ea9ad219d6bb18aa8a283e4ebf39527d107419` | `1c650575c2f2997d0af8d8fd566388270e42eb485fe57b7f485f812ec6e8fddf` |
+| `anchors/epoch-1.json` | 1 | `e86b72c907d8` | `96219e9491556295df407a42a1ea9ad219d6bb18aa8a283e4ebf39527d107419` | `25bb62cd891c422e1aa22164517077722261bb1cf47713d34cbb9fdf4fd6cfdc` |
 
-Epoch 0 carries 11 run digests. Its `prev_anchor_hash` is empty because it is the start of the
-chain. Its anchor hash is
-`1c650575c2f2997d0af8d8fd566388270e42eb485fe57b7f485f812ec6e8fddf`.
+Both records carry the same eleven run digests and the same aggregate. Epoch 0 has an empty
+`prev_anchor_hash` because it starts the chain, and epoch 1 links to it. Epoch 1 exists because the
+digest script changed, not because any observation set moved: the script now takes its sha256 from
+`shasum -a 256` where `sha256sum` is absent, which macOS requires.
 
 ## How to check a record
 
@@ -38,6 +40,13 @@ That exits 0 when every anchored run digest is unchanged and no anchored run has
 when one has moved, and 2 when the chain does not link or a record is not the tip. A run that is
 not in the anchor is allowed: new observation sets are anchored at the next epoch.
 
+## The records are checked where they land
+
+Every push to this repository runs `.github/workflows/verify-anchors.yml`. It walks the chain,
+checks that each record links to the one before it, and fails if an epoch drops or changes a digest
+that an earlier epoch anchored. It needs no secret and reads nothing but the records here, so a bad
+append is caught in this repository rather than only by whoever reads CUSTOS-CORE later.
+
 ## What these records do and do not establish
 
 A record shows that the frozen set now published matches the set that was anchored on a date. It
@@ -52,6 +61,18 @@ against the owner: the same account holds both repositories, so a compromise of 
 reaches both. Moving these records to an account or organization that cannot write CUSTOS-CORE is
 the stronger arrangement, and it has not been done.
 
-Writes from the CUSTOS-CORE side are meant to use a fine-grained token scoped to this repository
-alone, held in a GitHub Environment named `anchor-write` restricted to `main`. That token does not
-exist yet.
+Writes from the CUSTOS-CORE side use a fine-grained token scoped to this repository alone, held in
+a GitHub Environment named `anchor-write` restricted to `main`, never in ordinary repository
+secrets, and the writer runs only on pushes to `main`. That token exists as of 2026-11-19, and its
+ability to write was proven by a manual dry run that pushed a throwaway branch here and deleted it,
+so the first real epoch did not depend on an untested permission.
+
+## License
+
+The records, this README and the verification workflow are dedicated to the public domain under
+[CC0 1.0 Universal](LICENSE). Anyone may copy, quote, mirror or republish them without asking
+permission.
+
+That is deliberate. An anchor only helps if a party who does not trust this project can hold their
+own copy of it, and a license that required permission or attribution would put a lawyer between
+the reader and the check.

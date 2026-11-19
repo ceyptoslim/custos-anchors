@@ -1,8 +1,5 @@
-# Template for the anchor repository (custos-anchors), not for this repository.
-#
-# Copy to .github/workflows/verify-anchors.yml in the anchor repo. It runs on
-# every push, so a bad append is flagged where it lands rather than only by
-# whoever reads the main repository later. It needs no secret: it checks records
+# Runs on every push here, so a bad append is flagged where it lands rather than
+# only by whoever reads CUSTOS-CORE later. It needs no secret: it checks records
 # already in this repository against nothing but themselves.
 #
 # The containment rule is the point. A link alone proves only that the writer
@@ -23,7 +20,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Walk the chain and enforce containment
         run: |
           python3 - <<'PY'
